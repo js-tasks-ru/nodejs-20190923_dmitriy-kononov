@@ -1,5 +1,7 @@
 function sum(a, b) {
-  /* ваш код */
-}
+  if ([a, b].every((el) => typeof el !== 'number')) throw new TypeError;
+
+  return a + b;
+};
 
 module.exports = sum;
