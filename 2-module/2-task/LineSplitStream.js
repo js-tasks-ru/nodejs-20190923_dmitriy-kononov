@@ -1,33 +1,24 @@
 const stream = require('stream');
-const os = require('os');
+const {EOL} = require('os');
 
 class LineSplitStream extends stream.Transform {
   constructor(options) {
-    const { encoding } = options;
-    
     super(options);
 
-    this._encoding = encoding;
+    this._encoding  = (options && options.encoding) ? options.encoding : 'utf8';
     this._buffer = '';
   }
 
   _transform(chunk, encoding, callback) {
-    console.log('---tr---');
     this._buffer += chunk.toString(this._encoding);
-
-    console.log(`buffer = ${this._buffer}`)
     callback();
   }
 
   _flush(callback) {
-    
+    const arr = this._buffer.split(EOL);
 
-    this._buffer.split(os.EOL).forEach((str) => {
-      console.log('---fl----');
-      console.log(`str = ${str}`);
-      callback(null, str);
-    });
-
+    arr.forEach((el) => this.push(el));
+    callback();
   }
 }
 
