@@ -5,7 +5,7 @@ class LineSplitStream extends stream.Transform {
   constructor(options) {
     super(options);
 
-    this._encoding  = (options && options.encoding) ? options.encoding : 'utf8';
+    this._encoding = (options && options.encoding) ? options.encoding : 'utf8';
     this._buffer = '';
   }
 
