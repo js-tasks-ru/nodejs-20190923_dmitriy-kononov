@@ -4,16 +4,24 @@ const path = require('path');
 
 const server = new http.Server();
 
+const writeFile = require('./../writeFile');
+
+const sendError = (code, msg, res) => {
+  res.statusCode = code;
+  res.end(msg);
+};
+
+
 
 
 server.on('request', (req, res) => {
   const pathname = url.parse(req.url).pathname.slice(1);
 
-  const filepath = path.join(__dirname, 'files', pathname);
+ 
 
   switch (req.method) {
     case 'POST':
-        // console.dir(req);
+      writeFile(undefined, req);
       break;
 
     default:
