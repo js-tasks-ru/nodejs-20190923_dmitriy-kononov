@@ -1,4 +1,4 @@
-const server = require('../module/server');
+const server = require('../server');
 const request = require('request');
 const expect = require('chai').expect;
 const fse = require('fs-extra');
