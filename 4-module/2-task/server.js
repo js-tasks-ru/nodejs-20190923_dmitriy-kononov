@@ -1,7 +1,9 @@
 const url = require('url');
 const http = require('http');
+const path = require('path');
 
 const InternalServerError = require('./module/Message/InternalServerError');
+const BadRequestError = require('./module/Message/BadRequestError');
 
 const server = new http.Server();
 const writeFile = require('./module/writeFile');
@@ -14,13 +16,24 @@ const sendError = (res, code, msg) => {
 server.on('request', (req, res) => {
   const _sendError = sendError.bind(null, res);
 
-  const pathname = url.parse(req.url).pathname.slice(1);
-
   switch (req.method) {
     case 'POST':
-      writeFile(pathname, req, (msg) => {
+
+      const reqUrl = url.parse(req.url).pathname.slice(1);
+      const pathname = path.normalize(reqUrl);
+
+      if (path.dirname(pathname) !== '.' && path.dirname(pathname) !== path.sep) {
+        const err = new BadRequestError();
+        _sendError(err.code, err.msg);
+        break;
+      }
+
+      const filePath = path.join(__dirname, './files', path.basename(reqUrl));
+
+      writeFile(filePath, req, (msg) => {
         _sendError(msg.code, msg.message);
       });
+
       break;
 
     default:

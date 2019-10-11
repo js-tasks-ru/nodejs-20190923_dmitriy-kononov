@@ -1,25 +1,13 @@
 const fs = require('fs');
-const path = require('path');
 
 const LimitSizeStream = require('./../LimitSizeStream');
 
-const BadRequestError = require('../Message/BadRequestError');
 const LimitExceededError = require('../Message/LimitExceededError');
 const OkMessage = require('../Message/OkMessage');
 const FileExistsError = require('./../Message/FileExistsError');
 const InternalServerError = require('./../Message/InternalServerError');
 
-const writeFile = (url = 'test.txt', dataStream, cb) => {
-  
-  pathname = path.normalize(url);
-
-  if (path.dirname(pathname) !== '.' && path.dirname(pathname) !== path.sep) {   
-    cb(new BadRequestError);
-    return;
-  }
-  
-  const filePath = path.join(__dirname, '../../files', path.basename(url));
-
+const writeFile = (filePath, dataStream, cb) => {
   fs.stat(filePath, (err, stat) => {
     if (err === null) {
       cb(new FileExistsError);
@@ -36,7 +24,7 @@ const writeFile = (url = 'test.txt', dataStream, cb) => {
 
     file.on('ready', () => {
       dataStream.pipe(limitStream).pipe(file);
-      
+
       limitStream.on('end', () => {
         cb(new OkMessage());
       });
@@ -44,13 +32,12 @@ const writeFile = (url = 'test.txt', dataStream, cb) => {
       limitStream.on('error', () => {
         cb(new LimitExceededError);
       });
-
     });
 
     file.on('error', (err) => {
       console.dir(err);
     });
-  });  
+  });
 };
 
 module.exports = writeFile;
