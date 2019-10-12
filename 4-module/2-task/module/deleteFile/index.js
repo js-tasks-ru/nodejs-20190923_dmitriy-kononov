@@ -1,9 +1,13 @@
 const fs = require('fs');
 
-const deleteFile = (path) => {
-fs.unlink(path, (err) => {
-        console.dir(err);
-1});
+const deleteFile = (path, cb) => {
+  fs.unlink(path, (err) => {  
+    if (err) {
+      console.log('AAAAAAAAAAAAAAAAA');
+      console.dir(err);
+    }
+    cb();
+  });
 };
 
 module.exports = deleteFile;

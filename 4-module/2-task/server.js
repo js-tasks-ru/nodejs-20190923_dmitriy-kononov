@@ -7,6 +7,7 @@ const BadRequestError = require('./module/Message/BadRequestError');
 
 const server = new http.Server();
 const writeFile = require('./module/writeFile');
+const deleteFile = require('./module/deleteFile');
 
 const sendError = (res, code, msg) => {
   res.statusCode = code;

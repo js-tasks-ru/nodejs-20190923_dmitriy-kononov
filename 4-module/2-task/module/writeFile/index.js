@@ -1,6 +1,7 @@
 const fs = require('fs');
 
 const LimitSizeStream = require('./../LimitSizeStream');
+const deleteFile = require('./../deleteFile');
 
 const LimitExceededError = require('../Message/LimitExceededError');
 const OkMessage = require('../Message/OkMessage');
@@ -8,7 +9,7 @@ const FileExistsError = require('./../Message/FileExistsError');
 const InternalServerError = require('./../Message/InternalServerError');
 
 const writeFile = (filePath, dataStream, cb) => {
-  fs.stat(filePath, (err, stat) => {
+  fs.stat(filePath, (err, stat) => {   
     if (err === null) {
       cb(new FileExistsError);
       return;
@@ -30,7 +31,13 @@ const writeFile = (filePath, dataStream, cb) => {
       });
 
       limitStream.on('error', () => {
-        cb(new LimitExceededError);
+        deleteFile(filePath, () => {
+          limitStream.destroy();
+          cb(new LimitExceededError);
+        });
+        
+        // limitStream.destroy();
+        // cb(new LimitExceededError);
       });
     });
 
