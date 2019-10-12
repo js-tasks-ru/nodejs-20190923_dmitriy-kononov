@@ -9,7 +9,7 @@ const FileExistsError = require('./../Message/FileExistsError');
 const InternalServerError = require('./../Message/InternalServerError');
 
 const writeFile = (filePath, dataStream, cb) => {
-  fs.stat(filePath, (err, stat) => {   
+  fs.stat(filePath, (err, stat) => {
     if (err === null) {
       cb(new FileExistsError);
       return;
@@ -21,7 +21,7 @@ const writeFile = (filePath, dataStream, cb) => {
     }
 
     const file = new fs.WriteStream(filePath);
-    const limitStream = new LimitSizeStream({limit: 1048576});
+    const limitStream = new LimitSizeStream({limit: 1000000});
 
     file.on('ready', () => {
       dataStream.pipe(limitStream).pipe(file);
@@ -35,9 +35,6 @@ const writeFile = (filePath, dataStream, cb) => {
           limitStream.destroy();
           cb(new LimitExceededError);
         });
-        
-        // limitStream.destroy();
-        // cb(new LimitExceededError);
       });
     });
 
