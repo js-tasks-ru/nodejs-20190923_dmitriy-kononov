@@ -1,49 +1,96 @@
 const url = require('url');
 const http = require('http');
 const path = require('path');
+const fs = require('fs');
 
-const InternalServerError = require('./module/Message/InternalServerError');
-const BadRequestError = require('./module/Message/BadRequestError');
+const LimitSizeStream = require('./LimitSizeStream');
 
-const server = new http.Server();
-const writeFile = require('./module/writeFile');
-const deleteFile = require('./module/deleteFile');
+const deleteFile = async (pathname) => {
+  return await fs.promises.unlink(pathname);
+};
 
-const sendError = (res, code, msg) => {
+const checkFile = async (pathname) => {
+  await fs.promises.stat(pathname);
+};
+
+const checkPath = (url) => {
+  const pathname = path.normalize(url);
+
+  if (path.dirname(pathname) !== '.' && path.dirname(pathname) !== path.sep) {
+    return false;
+  }
+
+  return true;
+};
+
+const sendMsg = (res, code, msg) => {
   res.statusCode = code;
   res.end(msg);
 };
 
+const server = new http.Server();
+
 server.on('request', (req, res) => {
-  const _sendError = sendError.bind(null, res);
+  const pathname = url.parse(req.url).pathname.slice(1);
 
-  const reqUrl = url.parse(req.url).pathname.slice(1);
-  const filePath = path.join(__dirname, './files', path.basename(reqUrl));
-
-
-  server.once('clientError', (err) => {
-    deleteFile(filePath);
-  });
+  const filepath = path.join(__dirname, 'files', pathname);
 
   switch (req.method) {
     case 'POST':
-      const pathname = path.normalize(reqUrl);
+      const sendReq = sendMsg.bind(null, res);
 
-      if (path.dirname(pathname) !== '.' && path.dirname(pathname) !== path.sep) {
-        const err = new BadRequestError();
-        _sendError(err.code, err.msg);
+      server.once('clientError', () => {
+        deleteFile(filepath)
+            .then(() => {
+              sendReq(501, '501');
+            })
+            .catch(() => {
+              sendReq(501, '501');
+            });
+      });
+
+      if (!checkPath(pathname)) {
+        sendReq(400, '400');
         break;
       }
 
-      writeFile(filePath, req, (msg) => {
-        _sendError(msg.code, msg.message);
-      });
+      checkFile(filepath)
+          .then(() => {
+            sendReq(409, '409');
+          })
+          .catch((err) => {
+            if (err.code !== 'ENOENT') {
+              sendReq(501, '501');
+              return;
+            }
 
+            const file = fs.createWriteStream(filepath);
+            const limitSizeStream = new LimitSizeStream({limit: 1048576});
+
+            req.pipe(limitSizeStream).pipe(file);
+
+            file.on('finish', () => {
+              sendReq(201, '201');
+            });
+
+            file.on('error', () => {
+              sendReq(501, '501');
+            });
+
+            limitSizeStream.on('error', () => {
+              deleteFile(filepath)
+                  .then(() => {
+                    sendReq(413, '413');
+                  })
+                  .catch(() => {
+                    sendReq(501, '501');
+                  });
+            });
+          });
       break;
 
     default:
-      const err = new InternalServerError();
-      _sendError(err.code, err.msg);
+      sendReq(501, '501');
   }
 });
 
