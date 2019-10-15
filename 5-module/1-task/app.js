@@ -25,10 +25,7 @@ const distribution = (message) => {
   });
 };
 
-
 router.get('/subscribe', async (ctx, next) => {
-  console.log('GET');
-
   const message = await subscription(ctx);
 
   ctx.body = message;
