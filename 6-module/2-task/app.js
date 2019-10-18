@@ -26,6 +26,22 @@ router.get('/categories', categoryList);
 router.get('/products', productsBySubcategory, productList);
 router.get('/products/:id', productById);
 
+router.post('/add', async (ctx) => {
+  const Model = await require('./models/Category');
+
+  for (let i = 0; i < 4; i++) {
+    await Model.create({
+      title: `GENERATED${i}`,
+      subcategories: [
+        {title: `SUB_CAT${i}`},
+        {title: `SUB_CAT2${i}`},
+      ],
+    });
+  }
+
+  ctx.body = 'OK';
+});
+
 app.use(router.routes());
 
 module.exports = app;
