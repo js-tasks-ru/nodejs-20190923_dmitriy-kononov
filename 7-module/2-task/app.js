@@ -33,7 +33,10 @@ router.get('/products/:id', productById);
 router.post('/login', login);
 
 router.get('/oauth/:provider', oauth);
-router.post('/oauth_callback', handleMongooseValidationError, oauthCallback);
+router.get('/oauth_callback', (ctx, next) => {
+  console.log('1');
+  next();
+}, oauthCallback);
 
 app.use(router.routes());
 

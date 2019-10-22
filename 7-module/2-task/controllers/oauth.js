@@ -10,14 +10,15 @@ module.exports.oauth = async function oauth(ctx, next) {
       config.providers[provider].options,
   )(ctx, next);
 
-  ctx.status = 200;
-  ctx.body = {status: 'ok', location: ctx.response.get('location')};
+  // ctx.status = 200;
+  // ctx.body = {status: 'ok', location: ctx.response.get('location')};
 };
 
 module.exports.oauthCallback = async function oauthCallback(ctx, next) {
   const provider = ctx.request.body.provider;
 
   await passport.authenticate(provider, async (err, user, info) => {
+    
     if (err) throw err;
 
     if (!user) {
