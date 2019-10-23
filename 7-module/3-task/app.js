@@ -21,7 +21,6 @@ app.use(async (ctx, next) => {
       ctx.status = err.status;
       ctx.body = {error: err.message};
     } else {
-      console.error(err);
       ctx.status = 500;
       ctx.body = {error: 'Internal server error'};
     }
@@ -48,7 +47,6 @@ const router = new Router({prefix: '/api'});
 
 router.use(async (ctx, next) => {
   const header = ctx.request.get('Authorization');
-  console.dir(header);
 
   if (!header) return next();
 
