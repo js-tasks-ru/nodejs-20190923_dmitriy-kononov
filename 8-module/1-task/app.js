@@ -19,6 +19,16 @@ app.use(async (ctx, next) => {
   try {
     await next();
   } catch (err) {
+    if (err.name === 'ValidationError') {
+      ctx.status = 400;
+      ctx.body = {
+        errors: {
+          email: err.errors.email.message,
+        },
+      };
+      return;
+    }
+
     if (err.status) {
       ctx.status = err.status;
       ctx.body = {error: err.message};
