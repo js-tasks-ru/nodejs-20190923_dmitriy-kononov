@@ -19,6 +19,16 @@ app.use(async (ctx, next) => {
   try {
     await next();
   } catch (err) {
+    if (err.name === 'ValidationError') {
+      ctx.status = 400;
+      ctx.body = {
+        errors: {
+          email: err.errors.email.message,
+        },
+      };
+      return;
+    }
+
     if (err.status) {
       ctx.status = err.status;
       ctx.body = {error: err.message};
@@ -73,7 +83,7 @@ router.post('/oauth_callback', handleMongooseValidationError, oauthCallback);
 router.get('/me', mustBeAuthenticated, me);
 
 router.post('/register', register);
-router.get('/confirm/:token', confirm);
+router.post('/confirm', confirm);
 
 app.use(router.routes());
 

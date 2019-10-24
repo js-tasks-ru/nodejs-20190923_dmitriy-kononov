@@ -3,11 +3,9 @@ const User = require('../models/User');
 const sendMail = require('../libs/sendMail');
 
 module.exports.register = async (ctx, next) => {
-  console.log('----------- register');
-
   const {email, displayName, password} = ctx.request.body;
   const _uuid = uuid();
-
+  
   const user = new User({
     email,
     displayName,
@@ -16,20 +14,7 @@ module.exports.register = async (ctx, next) => {
 
   await user.setPassword(password);
 
-  await user.save().catch((err) => {
-    if (err.name === 'ValidationError') {
-      ctx.status = 400;
-      ctx.body = {
-        errors: {
-          email: err.errors.email.message,
-        },
-      };
-
-      return;
-    }
-
-    throw err;
-  });
+  await user.save();
 
   await sendMail({
     template: 'confirmation',
@@ -38,13 +23,15 @@ module.exports.register = async (ctx, next) => {
     subject: 'Confirm register',
   });
 
-  next();
+  ctx.status = 200;
+  ctx.body = {status: 'ok'};
+  return;
 };
 
 module.exports.confirm = async (ctx, next) => {
-  const {token} = ctx.params;
+  const {verificationToken} = ctx.request.body;
 
-  const user = await User.findOne({verificationToken: token});
+  const user = await User.findOne({verificationToken});
 
   if (!user) {
     ctx.body = {error: 'Ссылка подтверждения недействительна или устарела'};
@@ -52,9 +39,9 @@ module.exports.confirm = async (ctx, next) => {
     return;
   }
 
-  user.verificationToken = '';
+  user.verificationToken = undefined;
   await user.save();
 
   const session = await ctx.login(user);
-  ctx.body = {session};
+  ctx.body = {token: session};
 };
