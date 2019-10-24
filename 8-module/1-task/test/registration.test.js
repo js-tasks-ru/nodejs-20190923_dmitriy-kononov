@@ -139,8 +139,6 @@ describe('8-module-1-task', () => {
         },
       });
 
-      console.dir(response.body);
-
       expect(response.body, 'с сервера должна вернуться ошибка').to
           .eql({error: 'Ссылка подтверждения недействительна или устарела'});
     });
