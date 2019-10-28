@@ -89,6 +89,11 @@ router.post('/orders', mustBeAuthenticated, handleMongooseValidationError, check
 
 router.get('/messages', messageList);
 
+router.prefix('/');
+
+router.get('/', './public/index.html');
+
+
 app.use(router.routes());
 
 // this for HTML5 history in browser
